@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Catalog.Entities;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Catalog.Repositories
 {
-    public class MongoDbItemsRepo : IInMemItemsRepo
+    public class MongoDbItemsRepo : IItemsRepo
     {
         private const string databaseName = "catalog";
         private const string collectionName = "items";
@@ -17,32 +18,30 @@ namespace Catalog.Repositories
             IMongoDatabase database = mongoClient.GetDatabase(databaseName);
             itemsCollection = database.GetCollection<Item>(collectionName);
         }
-        public void CreateItem(Item item)
+        public async Task CreateItemAsync(Item item)
         {
-            itemsCollection.InsertOne(item);
+            await itemsCollection.InsertOneAsync(item);
         }
 
-        public void DeleteItem(Guid id)
+        public async Task DeleteItemAsync(Guid id)
         {
-            itemsCollection.DeleteOne(item => item.Id == id);
+            await itemsCollection.DeleteOneAsync(item => item.Id == id);
         }
 
-        public Item GetItem(Guid id)
+        public async Task<Item> GetItemAsync(Guid id)
         {
-            return itemsCollection.Find(item => item.Id == id).SingleOrDefault();
+            return await itemsCollection.Find(item => item.Id == id).SingleOrDefaultAsync();
         }
 
-        /*
-            Pass empty filter to collection.Find() to return all documents in the collection
-        */
-        public IEnumerable<Item> GetItems()
+        public async Task<IEnumerable<Item>> GetItemsAsync()
         {
-            return itemsCollection.Find(FilterDefinition<Item>.Empty).ToList();
+            // FilterDefinition<Item>.Empty to return everything
+            return await itemsCollection.Find(FilterDefinition<Item>.Empty).ToListAsync();
         }
 
-        public void UpdateItem(Item item)
+        public async Task UpdateItemAsync(Item item)
         {
-            itemsCollection.ReplaceOne(existingItem => existingItem.Id == item.Id, item);
+            await itemsCollection.ReplaceOneAsync(existingItem => existingItem.Id == item.Id, item);
         }
     }
 }
